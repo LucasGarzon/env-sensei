@@ -19,6 +19,60 @@
   ],
   "main": "./out/main.js",
   "contributes": {
+    "configuration": {
+      "title": "Env Sensei",
+      "properties": {
+        "envSensei.envExampleFileName": {
+          "type": "string",
+          "default": ".env.example",
+          "description": "Nombre del archivo .env example a usar para code actions e inventario."
+        },
+        "envSensei.severitySecrets": {
+          "type": "string",
+          "enum": ["error", "warning", "information", "hint"],
+          "default": "error",
+          "description": "Severidad para detecciones de secretos."
+        },
+        "envSensei.severityConfig": {
+          "type": "string",
+          "enum": ["error", "warning", "information", "hint"],
+          "default": "warning",
+          "description": "Severidad para detecciones de configuración."
+        },
+        "envSensei.ignoredGlobs": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": [],
+          "description": "Globs adicionales para ignorar al escanear inventario."
+        },
+        "envSensei.ignoredWords": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": [],
+          "description": "Palabras a ignorar en las detecciones (comparación parcial e insensible a mayúsculas)."
+        },
+        "envSensei.envVarPrefix": {
+          "type": "string",
+          "default": "",
+          "description": "Prefijo aplicado al nombre de variable sugerido (ej: APP_)."
+        },
+        "envSensei.insertFallback": {
+          "type": "boolean",
+          "default": false,
+          "description": "Si está activo, reemplazos usan process.env.VAR ?? \"\"."
+        },
+        "envSensei.schemaIntegration.enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Habilita la code action para agregar al schema Zod."
+        },
+        "envSensei.schemaIntegration.schemaPath": {
+          "type": "string",
+          "default": "src/env.schema.ts",
+          "description": "Ruta del archivo de schema Zod relativa al workspace."
+        }
+      }
+    },
     "commands": [
       {
         "command": "envSensei.scanInventory",

@@ -139,4 +139,26 @@ const items = ["apple", "banana"];
     const detections = detector.analyze(sf);
     assert.strictEqual(detections.length, 0, 'Safe code should have zero detections');
   });
+
+  test('skips detections when ignored word matches identifier', () => {
+    const code = 'const internalTestToken = "secret-value-123";';
+    const sf = createSourceFile(code);
+    const customDetector = new Detector({
+      ...DEFAULT_CONFIG,
+      ignoredWords: ['internalTest'],
+    });
+    const detections = customDetector.analyze(sf);
+    assert.strictEqual(detections.length, 0, 'Should ignore match by identifier');
+  });
+
+  test('skips detections when ignored word matches literal value', () => {
+    const code = 'const jwtSecret = "dummy-secret-for-tests";';
+    const sf = createSourceFile(code);
+    const customDetector = new Detector({
+      ...DEFAULT_CONFIG,
+      ignoredWords: ['dummy-secret'],
+    });
+    const detections = customDetector.analyze(sf);
+    assert.strictEqual(detections.length, 0, 'Should ignore match by literal value');
+  });
 });

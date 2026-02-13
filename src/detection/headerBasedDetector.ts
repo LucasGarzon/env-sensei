@@ -52,6 +52,7 @@ export class HeaderBasedDetector implements DetectorHeuristic {
       category: 'secret',
       source: 'header-based',
       proposedEnvVarName: toEnvVarName(propertyName),
+      identifierHint: propertyName,
       _rawValue: value,
       valueLength: value.length,
     }];

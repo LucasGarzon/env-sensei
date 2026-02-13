@@ -11,6 +11,8 @@ export interface Detection {
   category: DetectionCategory;
   source: DetectionSource;
   proposedEnvVarName: string;
+  /** Original symbol/property name associated with detection, if available */
+  identifierHint?: string;
   /** Raw value kept in memory ONLY for replacement — never displayed */
   _rawValue: string;
   valueLength: number;
@@ -21,6 +23,7 @@ export interface EnvSenseiConfig {
   severitySecrets: vscode.DiagnosticSeverity;
   severityConfig: vscode.DiagnosticSeverity;
   ignoredGlobs: string[];
+  ignoredWords: string[];
   envVarPrefix: string;
   insertFallback: boolean;
   schemaIntegration: {

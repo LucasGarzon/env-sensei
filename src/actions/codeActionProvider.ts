@@ -44,6 +44,9 @@ export class EnvSenseiCodeActionProvider implements vscode.CodeActionProvider {
       if (this.config.schemaIntegration.enabled) {
         actions.push(this.createAddToSchemaAction(document, diagnostic, detection));
       }
+
+      const ignoreWordActions = this.createIgnoreWordActions(diagnostic, detection);
+      actions.push(...ignoreWordActions);
     }
 
     return actions;
@@ -130,5 +133,80 @@ export class EnvSenseiCodeActionProvider implements vscode.CodeActionProvider {
     };
 
     return action;
+  }
+
+  private createIgnoreWordActions(
+    diagnostic: vscode.Diagnostic,
+    detection: Detection
+  ): vscode.CodeAction[] {
+    const wordToIgnore = this.pickWordToIgnore(detection);
+    if (!wordToIgnore) {
+      return [];
+    }
+
+    const workspaceAction = new vscode.CodeAction(
+      `Ignore "${wordToIgnore}" in workspace settings`,
+      vscode.CodeActionKind.QuickFix
+    );
+    workspaceAction.diagnostics = [diagnostic];
+    workspaceAction.command = {
+      command: 'envSensei.addIgnoredWord',
+      title: 'Add ignored word (workspace)',
+      arguments: [wordToIgnore, 'workspace'],
+    };
+
+    const userAction = new vscode.CodeAction(
+      `Ignore "${wordToIgnore}" in user settings`,
+      vscode.CodeActionKind.QuickFix
+    );
+    userAction.diagnostics = [diagnostic];
+    userAction.command = {
+      command: 'envSensei.addIgnoredWord',
+      title: 'Add ignored word (user)',
+      arguments: [wordToIgnore, 'user'],
+    };
+
+    return [workspaceAction, userAction];
+  }
+
+  private pickWordToIgnore(detection: Detection): string | undefined {
+    const fromHost = this.extractHostFromUriLikeValue(detection._rawValue);
+    if (fromHost) {
+      return fromHost;
+    }
+
+    const fromIdentifier = this.extractToken(detection.identifierHint);
+    if (fromIdentifier) {
+      return fromIdentifier;
+    }
+
+    return this.extractToken(detection._rawValue);
+  }
+
+  private extractHostFromUriLikeValue(value: string): string | undefined {
+    const hostMatch = value.match(/^[a-z][a-z0-9+.-]*:\/\/([^/?#]+)/i);
+    if (!hostMatch) {
+      return undefined;
+    }
+
+    const hostWithPort = hostMatch[1].replace(/^\[|\]$/g, '');
+    const host = hostWithPort.split(':')[0].trim();
+    if (!host) {
+      return undefined;
+    }
+
+    return host.toLowerCase();
+  }
+
+  private extractToken(value: string | undefined): string | undefined {
+    if (!value) {
+      return undefined;
+    }
+
+    const token = value
+      .split(/[^a-zA-Z0-9_]+/)
+      .find(part => part.length >= 3);
+
+    return token ? token.toLowerCase() : undefined;
   }
 }

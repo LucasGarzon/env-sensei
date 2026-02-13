@@ -69,10 +69,60 @@ export function activate(context: vscode.ExtensionContext): void {
         if (isSupported(doc)) diagnosticsManager.scheduleAnalysis(doc);
       });
     }),
+    vscode.workspace.onDidChangeConfiguration(event => {
+      if (!event.affectsConfiguration('envSensei')) {
+        return;
+      }
+      const newConfig = loadConfig(workspaceRoot);
+      config = newConfig;
+      diagnosticsManager.updateConfig(newConfig);
+      codeActionProvider.updateConfig(newConfig);
+      vscode.workspace.textDocuments.forEach(doc => {
+        if (isSupported(doc)) diagnosticsManager.scheduleAnalysis(doc);
+      });
+    }),
   );
 
   // Command: Add to .env.example (called by code actions)
   context.subscriptions.push(
+    vscode.commands.registerCommand(
+      'envSensei.addIgnoredWord',
+      async (word: string, target: 'workspace' | 'user' = 'workspace') => {
+        const cleaned = typeof word === 'string' ? word.trim() : '';
+        if (!cleaned) {
+          vscode.window.showWarningMessage('Env Sensei: Invalid ignored word.');
+          return;
+        }
+
+        const vscodeConfig = vscode.workspace.getConfiguration('envSensei');
+        const current = vscodeConfig.get<string[]>('ignoredWords') || [];
+        const alreadyExists = current.some(existing => existing.toLowerCase() === cleaned.toLowerCase());
+        if (alreadyExists) {
+          vscode.window.showInformationMessage(
+            `Env Sensei: "${cleaned}" is already in envSensei.ignoredWords.`
+          );
+          return;
+        }
+
+        if (target === 'workspace' && !vscode.workspace.workspaceFolders?.length) {
+          vscode.window.showWarningMessage(
+            'Env Sensei: Open a workspace folder to save workspace settings.'
+          );
+          return;
+        }
+
+        const next = [...current, cleaned];
+        const configTarget = target === 'user'
+          ? vscode.ConfigurationTarget.Global
+          : vscode.ConfigurationTarget.Workspace;
+
+        await vscodeConfig.update('ignoredWords', next, configTarget);
+        vscode.window.showInformationMessage(
+          `Env Sensei: Added "${cleaned}" to ${target} ignored words.`
+        );
+      }
+    ),
+    // Command: Add to .env.example (called by code actions)
     vscode.commands.registerCommand(
       'envSensei.addToEnvExample',
       async (filePath: string, varName: string, category: DetectionCategory, envFileName: string) => {

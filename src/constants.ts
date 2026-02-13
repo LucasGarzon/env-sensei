@@ -165,6 +165,7 @@ export const DEFAULT_CONFIG: EnvSenseiConfig = {
   severitySecrets: vscode.DiagnosticSeverity.Error,
   severityConfig: vscode.DiagnosticSeverity.Warning,
   ignoredGlobs: [],
+  ignoredWords: [],
   envVarPrefix: "",
   insertFallback: false,
   schemaIntegration: { enabled: false, schemaPath: "src/env.schema.ts" },
