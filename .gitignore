@@ -1,0 +1,13 @@
+out/
+node_modules/
+.vscode-test/
+*.vsix
+.DS_Store
+
+# IDE/Editor configs
+.vscode/
+.claude/
+
+# Documentation for AI agents
+AGENTS.md
+CLAUDE.md
