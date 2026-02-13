@@ -121,6 +121,7 @@ Creá un archivo `.envsenseirc.json` en la raíz del workspace:
   "severitySecrets": "error",
   "severityConfig": "warning",
   "ignoredGlobs": ["**/generated/**"],
+  "ignoredWords": ["mockToken", "dummySecret"],
   "envVarPrefix": "APP_",
   "insertFallback": false,
   "schemaIntegration": {
@@ -136,9 +137,26 @@ Creá un archivo `.envsenseirc.json` en la raíz del workspace:
 | `severitySecrets` | `"error"` | Severity para secrets detectados (`error`, `warning`, `information`, `hint`) |
 | `severityConfig` | `"warning"` | Severity para configs detectadas |
 | `ignoredGlobs` | `[]` | Globs adicionales a ignorar (además de `node_modules`, `dist`, `build`, `.next`, `coverage`) |
+| `ignoredWords` | `[]` | Palabras a ignorar en detección. Si aparecen en identificador o valor literal, no se genera diagnóstico |
 | `envVarPrefix` | `""` | Prefijo para nombres de env vars generados (ej: `APP_`) |
 | `insertFallback` | `false` | Si es `true`, genera `process.env.VAR ?? ""` en vez de `process.env.VAR` |
 | `schemaIntegration.enabled` | `false` | Habilita la code action "Add to env schema (Zod)" |
 | `schemaIntegration.schemaPath` | `src/env.schema.ts` | Ruta al archivo de schema Zod |
 
 La configuración se recarga automáticamente al modificar el archivo.
+
+También podés configurar opciones a nivel usuario o workspace desde VSCode/Cursor en `settings.json` con el prefijo `envSensei.*`.
+
+Ejemplo para palabras ignoradas:
+
+```json
+{
+  "envSensei.ignoredWords": ["internalTestToken", "myLocalValue"]
+}
+```
+
+Si además definís `ignoredWords` en `.envsenseirc.json`, ambas listas se combinan (sin duplicados). Esto permite tener una base global en User y sumar excepciones por proyecto.
+
+Tip: desde un diagnóstico también podés usar Quick Fix con un click:
+- `Ignore "<word>" in workspace settings`
+- `Ignore "<word>" in user settings`

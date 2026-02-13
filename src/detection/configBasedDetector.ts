@@ -30,6 +30,7 @@ export class ConfigBasedDetector implements DetectorHeuristic {
       category: 'config',
       source: 'config-based',
       proposedEnvVarName: toEnvVarName(identifier),
+      identifierHint: identifier,
       _rawValue: value,
       valueLength: value.length,
     }];

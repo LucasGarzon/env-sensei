@@ -7,22 +7,80 @@ import { DEFAULT_CONFIG } from '../constants';
 const CONFIG_FILE_NAME = '.envsenseirc.json';
 
 export function loadConfig(workspaceRoot: string | undefined): EnvSenseiConfig {
-  if (!workspaceRoot) return { ...DEFAULT_CONFIG };
+  const fromVsCode = loadConfigFromVSCode();
+  if (!workspaceRoot) return fromVsCode;
 
   const configPath = path.join(workspaceRoot, CONFIG_FILE_NAME);
-  if (!fs.existsSync(configPath)) return { ...DEFAULT_CONFIG };
+  if (!fs.existsSync(configPath)) return fromVsCode;
 
   try {
     const raw = fs.readFileSync(configPath, 'utf-8');
     const parsed = JSON.parse(raw);
-    return mergeConfig(parsed);
+    return mergeConfig(parsed, fromVsCode);
   } catch {
-    return { ...DEFAULT_CONFIG };
+    return fromVsCode;
   }
 }
 
-function mergeConfig(raw: Record<string, unknown>): EnvSenseiConfig {
+function loadConfigFromVSCode(): EnvSenseiConfig {
   const config = { ...DEFAULT_CONFIG };
+  const vscodeConfig = vscode.workspace.getConfiguration('envSensei');
+
+  const envExampleFileName = vscodeConfig.get<string>('envExampleFileName');
+  if (typeof envExampleFileName === 'string') {
+    config.envExampleFileName = envExampleFileName;
+  }
+
+  const severitySecrets = vscodeConfig.get<string>('severitySecrets');
+  if (typeof severitySecrets === 'string') {
+    config.severitySecrets = parseSeverity(severitySecrets);
+  }
+
+  const severityConfig = vscodeConfig.get<string>('severityConfig');
+  if (typeof severityConfig === 'string') {
+    config.severityConfig = parseSeverity(severityConfig);
+  }
+
+  const ignoredGlobs = vscodeConfig.get<string[]>('ignoredGlobs');
+  if (Array.isArray(ignoredGlobs)) {
+    config.ignoredGlobs = ignoredGlobs.filter(
+      (glob): glob is string => typeof glob === 'string'
+    );
+  }
+
+  const ignoredWords = vscodeConfig.get<string[]>('ignoredWords');
+  if (Array.isArray(ignoredWords)) {
+    config.ignoredWords = ignoredWords.filter(
+      (word): word is string => typeof word === 'string'
+    );
+  }
+
+  const envVarPrefix = vscodeConfig.get<string>('envVarPrefix');
+  if (typeof envVarPrefix === 'string') {
+    config.envVarPrefix = envVarPrefix;
+  }
+
+  const insertFallback = vscodeConfig.get<boolean>('insertFallback');
+  if (typeof insertFallback === 'boolean') {
+    config.insertFallback = insertFallback;
+  }
+
+  const schemaEnabled = vscodeConfig.get<boolean>('schemaIntegration.enabled');
+  const schemaPath = vscodeConfig.get<string>('schemaIntegration.schemaPath');
+  config.schemaIntegration = {
+    enabled: typeof schemaEnabled === 'boolean'
+      ? schemaEnabled
+      : DEFAULT_CONFIG.schemaIntegration.enabled,
+    schemaPath: typeof schemaPath === 'string'
+      ? schemaPath
+      : DEFAULT_CONFIG.schemaIntegration.schemaPath,
+  };
+
+  return config;
+}
+
+function mergeConfig(raw: Record<string, unknown>, baseConfig: EnvSenseiConfig): EnvSenseiConfig {
+  const config = { ...baseConfig };
 
   if (typeof raw.envExampleFileName === 'string') {
     config.envExampleFileName = raw.envExampleFileName;
@@ -34,9 +92,16 @@ function mergeConfig(raw: Record<string, unknown>): EnvSenseiConfig {
     config.severityConfig = parseSeverity(raw.severityConfig);
   }
   if (Array.isArray(raw.ignoredGlobs)) {
-    config.ignoredGlobs = raw.ignoredGlobs.filter(
+    const ignoredGlobs = raw.ignoredGlobs.filter(
       (g): g is string => typeof g === 'string'
     );
+    config.ignoredGlobs = Array.from(new Set([...config.ignoredGlobs, ...ignoredGlobs]));
+  }
+  if (Array.isArray(raw.ignoredWords)) {
+    const ignoredWords = raw.ignoredWords.filter(
+      (word): word is string => typeof word === 'string'
+    );
+    config.ignoredWords = Array.from(new Set([...config.ignoredWords, ...ignoredWords]));
   }
   if (typeof raw.envVarPrefix === 'string') {
     config.envVarPrefix = raw.envVarPrefix;

@@ -29,6 +29,7 @@ export class PatternBasedDetector implements DetectorHeuristic {
           category: pattern.category,
           source: 'pattern-based',
           proposedEnvVarName: envVarName,
+          identifierHint: identifier ?? pattern.name,
           _rawValue: value,
           valueLength: value.length,
         });

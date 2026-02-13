@@ -46,6 +46,7 @@ export class KeyBasedDetector implements DetectorHeuristic {
       category: 'secret',
       source: 'key-based',
       proposedEnvVarName: toEnvVarName(identifier),
+      identifierHint: identifier,
       _rawValue: value,
       valueLength: value.length,
     }];
