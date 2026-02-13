@@ -83,11 +83,25 @@ npm run compile
 ### Comandos
 
 ```bash
-npm run compile    # Compilar
+npm run compile    # Compilar TypeScript
 npm run watch      # Compilar en modo watch (incremental)
 npm run lint       # ESLint
 npm test           # Correr tests
+npm run package    # Generar archivo .vsix para instalar en VSCode/Cursor
 ```
+
+### Generar el paquete de instalación
+
+Para instalar la extensión en VSCode o Cursor sin publicarla en el marketplace:
+
+1. Generá el archivo `.vsix`:
+   ```bash
+   npm run package
+   ```
+
+2. Instalalo en VSCode/Cursor:
+   - **Por UI:** `Cmd+Shift+X` → menú `...` → "Install from VSIX" → seleccioná `env-sensei-0.1.0.vsix`
+   - **Por CLI:** `cursor --install-extension env-sensei-0.1.0.vsix`
 
 ### Tests
 
